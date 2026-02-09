@@ -9,6 +9,7 @@ on:
 
 permissions:
   pull-requests: write
+  statuses: write
 
 jobs:
   lint-pr-title:
@@ -16,6 +17,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       pull-requests: read
+      statuses: write
     steps:
       - name: Validate PR title
         id: lint_pr_title
