@@ -94,3 +94,4 @@ feat!(api): change default escalation policy schema
 | `Updated dependencies`                                | Missing type, past tense                | `chore(deps): bump axios to 1.6.0`                      |
 | `WIP`                                                 | Don't merge WIP PRs — use draft PRs    | —                                                        |
 | `feat(ui): Add Dashboard Component For Monitoring.`   | Starts uppercase, trailing period       | `feat(ui): add dashboard component for monitoring`       |
+<!-- test -->
