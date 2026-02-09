@@ -1,0 +1,110 @@
+name: Validate PR title
+
+on:
+  pull_request_target:
+    types:
+      - opened
+      - reopened
+      - edited
+
+permissions:
+  pull-requests: write
+
+jobs:
+  lint-pr-title:
+    name: Validate PR title
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: read
+    steps:
+      - name: Validate PR title
+        id: lint_pr_title
+        uses: amannn/action-semantic-pull-request@v6
+        with:
+          types: |
+            feat
+            fix
+            perf
+            docs
+            refactor
+            chore
+            test
+            style
+          scopes: |
+            playbooks
+            hybrid-ama
+            live-ama
+            analysis-agent
+            profile-picker
+            ui
+            api
+            slack
+            auth
+            jira
+            ci
+            deps
+            config
+          requireScope: false
+          wip: true
+          validateSingleCommit: true
+          validateSingleCommitMatchesPrTitle: true
+          subjectPattern: ^[a-z].+[^.]$
+          subjectPatternError: |
+            The subject "{subject}" doesn't match the required pattern.
+            - Start with a lowercase letter
+            - Do not end with a period
+            Example: "fix(ui): resolve layout issue"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  comment-on-failure:
+    name: Comment on PR
+    runs-on: ubuntu-latest
+    needs: lint-pr-title
+    if: always()
+    permissions:
+      pull-requests: write
+    steps:
+      - name: Post error comment
+        if: ${{ needs.lint-pr-title.result == 'failure' }}
+        uses: marocchino/sticky-pull-request-comment@v2
+        with:
+          header: pr-title-lint-error
+          message: |
+            ## ❌ PR Title Lint Failed
+
+            Your PR title does not follow **Conventional Commits** format.
+
+            ### Expected Format
+            ```
+            <type>(<scope>): <short description>
+            ```
+
+            ### Valid Types
+            `feat` · `fix` · `perf` · `docs` · `refactor` · `chore` · `test` · `style`
+
+            ### Valid Scopes (optional)
+            `playbooks` · `hybrid-ama` · `live-ama` · `analysis-agent` · `profile-picker` · `ui` · `api` · `slack` · `auth` · `jira` · `ci` · `deps` · `config`
+
+            ### Examples
+            ```
+            feat(playbooks): add conditional branching for remediation workflows
+            fix(live-ama): resolve response consistency on multi-turn queries
+            chore(deps): upgrade Azure SDK to v5.3
+            ```
+
+            ### Rules
+            - Description must start with a **lowercase** letter
+            - Description must **not** end with a period
+            - Use **imperative mood** ("add", not "added")
+
+            > 📖 See the [README](../blob/main/README.md) for the full PR naming guide.
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Delete error comment on success
+        if: ${{ needs.lint-pr-title.result == 'success' }}
+        uses: marocchino/sticky-pull-request-comment@v2
+        with:
+          header: pr-title-lint-error
+          delete: true
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
